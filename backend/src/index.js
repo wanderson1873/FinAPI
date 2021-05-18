@@ -8,7 +8,7 @@ app.use(express.json());
 const customers = [];
 
 // Middleware
-function verExistsAccountCPF(request, response, next) {
+function verifyExistsAccountCPF(request, response, next) {
    const { cpf } = request.headers;
 
    const customer = customers.find(
@@ -43,14 +43,30 @@ app.post("/account", (request, response) => {
    })
 
    return response.status(201).send()
-})
+});
 
 // app.use(verExistsAccountCPF)
 
-app.get("/statement", verExistsAccountCPF, (request, response) => {
+app.get("/statement", verifyExistsAccountCPF, (request, response) => {
    const { customer } = request;
 
    return response.json(customer.statement)
+});
+
+app.post("/deposit", verifyExistsAccountCPF, (request, response) => {
+   const { description, amount } = request.body;
+   const { customer } = request;
+
+   const statementOption = {
+      description,
+      amount,
+      created_at: new Date(),
+      type: "credit"
+   }
+
+   customer.statement.push(statementOption);
+
+   return response.status(201).send();
 });
 
 app.listen(3333);
